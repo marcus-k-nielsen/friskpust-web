@@ -1,6 +1,4 @@
-# Frisk-Pust-Hjemmeside
-Dette er hjemmesiden til vores frisk pust enhed
-# Database to Flask Web Application
+# Friskpust Web Application
 
 A small Python web application built with **Flask** that retrieves data from a database and displays it through a web interface.
 
