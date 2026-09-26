@@ -1,14 +1,12 @@
-# Database to Flask Web Application
-
+Database to Flask Web Application
 A small Python web application built with Flask that retrieves data from a database and displays it through a web interface.
 
 The project was created to practice connecting a database to a Flask application and separating database logic from the web application itself.
 
-## Overview
-
+Overview
 The application follows a simple data flow:
 
-```text
+Plaintext
 Database
    │
    ▼
@@ -25,7 +23,6 @@ HTML Templates
    │
    ▼
 Web Browser
-
 The project demonstrates how data can be retrieved from a database and made available through a Flask-based web application.
 
 Technologies
@@ -40,7 +37,7 @@ Database
 SQL
 
 Project Structure
-
+Plaintext
 DB-To-Flask-App/
 │
 ├── templates/
@@ -51,7 +48,6 @@ DB-To-Flask-App/
 ├── get_data.py
 ├── README.md
 └── .gitignore
-
 File Details
 app.py — The main Flask application. It handles the web application and routes requests to the appropriate pages.
 
@@ -77,12 +73,39 @@ The template displays the data in the browser.
 This provides a basic example of connecting a backend application to a database and presenting the stored information through a web interface.
 
 Running the Project
+Clone the repository:
 
-1. Clone the repository:
-
-git clone [https://github.com/TezzePP/DB-To-Flask-App.git](https://github.com/TezzePP/DB-To-Flask-App.git)
+Bash
+git clone https://github.com/TezzePP/DB-To-Flask-App.git
 cd DB-To-Flask-App
+Install the required Python packages:
 
-2. Install the required Python packages:
-
+Bash
 pip install flask
+Configure the database connection in the application before starting the server.
+
+Run the Flask application:
+
+Bash
+python app.py
+The application can then be accessed through the local Flask server.
+
+What I Learned
+This project gave me experience with:
+
+Connecting Python applications to databases
+
+Retrieving data using SQL
+
+Building Flask applications
+
+Using Jinja2 templates
+
+Separating database logic from application logic
+
+Passing backend data to a web interface
+
+Project Status
+This is a small educational project focused on learning the fundamentals of database integration with Flask.
+
+It is not intended to be a production-ready application.
