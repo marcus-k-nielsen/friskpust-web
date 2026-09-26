@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Environment Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background: #08132b;
+            color: white;
+            min-height: 100vh;
+            padding: 40px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            margin-bottom: 50px;
+            font-size: 22px;
+        }
+
+        /* =========================================
+           DEVICE CONTROL PANEL
+        ========================================= */
+        .control-panel {
+            max-width: 600px;
+            margin: 0 auto 50px auto;
+            background: #0d1b38;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.25);
+            display: flex;
+            gap: 15px;
+        }
+        .control-panel input {
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #1e293b;
+            background: #08132b;
+            color: white;
+            font-size: 18px;
+            outline: none;
+        }
+        .control-panel button {
+            padding: 15px 30px;
+            background: #32d74b;
+            color: #08132b;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: 0.2s;
+        }
+        .control-panel button:hover {
+            background: #28b83b;
+        }
+
+        /* =========================================
+           DYNAMIC DEVICE INTERFACE BLOCKS
+        ========================================= */
+        .device-section {
+            background: rgba(13, 27, 56, 0.3);
+            border: 2px solid #1e293b;
+            border-radius: 30px;
+            padding: 40px;
+            margin-bottom: 60px;
+        }
+        .device-header {
+            font-size: 36px;
+            color: #5c7cff;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #1e293b;
+            padding-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .remove-btn {
+            background: #ff5e57;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .remove-btn:hover {
+            background: #e0443c;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+        }
+        .card {
+            background: #0d1b38;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.25);
+        }
+        .average-card {
+            grid-column: 1 / -1;
+        }
+        .card h2 {
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        /* =========================================
+           GAUGES
+        ========================================= */
+        .gauge-container {
+            position: relative;
+            width: 240px;
+            height: 130px;
+            margin: auto;
+            overflow: hidden;
+        }
+        .gauge {
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            position: relative;
+        }
+        .gauge::before {
+            content: "";
+            position: absolute;
+            width: 190px;
+            height: 190px;
+            background: #0d1b38;
+            border-radius: 50%;
+            top: 25px;
+            left: 25px;
+            z-index: 2;
+        }
+        .needle {
+            position: absolute;
+            width: 5px;
+            height: 82px;
+            background: white;
+            left: 50%;
+            bottom: 20px;
+            transform-origin: bottom center;
+            border-radius: 10px;
+            transition: transform 0.5s ease;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+            z-index: 10;
+        }
+        .center-circle {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #1e293b;
+            border-radius: 50%;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid #334155;
+            z-index: 20;
+        }
+        .value {
+            text-align: center;
+            font-size: 55px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .unit {
+            text-align: center;
+            color: #d1d5db;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        .status {
+            width: fit-content;
+            margin: 20px auto 0 auto;
+            padding: 10px 22px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .green { border: 2px solid #32d74b; color: #32d74b; }
+        .yellow { border: 2px solid #ffd000; color: #ffd000; }
+        .orange { border: 2px solid #ff9500; color: #ff9500; }
+        .red { border: 2px solid #ff5e57; color: #ff5e57; }
+
+        .temp-toggle {
+            display: block;
+            margin: 20px auto 0 auto;
+            padding: 10px 18px;
+            background: #132548;
+            border: 2px solid #5c7cff;
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        .temp-toggle:hover {
+            background: #1d3b70;
+        }
+
+        /* =========================================
+           AVERAGES PANEL
+        ========================================= */
+        .average-wrapper {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .average-box {
+            background: #132548;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        .average-box h3 {
+            margin-bottom: 12px;
+            color: #7CFC00;
+            font-size: 24px;
+        }
+        .average-box p {
+            margin: 8px 0;
+            font-size: 18px;
+            color: #dbe4ff;
+        }
+
+        @media (max-width: 1200px) { .dashboard { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { h1 { font-size: 42px; } .dashboard { grid-template-columns: 1fr; } .average-wrapper { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <h1>Environment Monitor</h1>
+    <div class="subtitle">Multi-Device Live Dashboard</div>
+
+    <div class="control-panel">
+        <input
+            type="text"
+            id="device-input"
+            placeholder="Type Device ID (e.g. device_1)..."
+            onkeydown="handleDeviceInput(event)"
+        >
+        <button onclick="addNewDevice()">Add Device</button>
+    </div>
+
+    <div id="devices-container"></div>
+
+    <script>
+        // Track unique device UI presentation states
+        const activeDevices = {};
+
+        function cToF(celsius) {
+            return ((celsius * 9/5) + 32).toFixed(1);
+        }
+        function handleDeviceInput(event) {
+
+            // Detect ENTER key press
+            if (event.key === "Enter") {
+
+                // Prevent accidental browser refresh
+                event.preventDefault();
+
+                // Trigger same logic as Add Device button
+                addNewDevice();
+            }
+        }
+
+        async function addNewDevice() {
+            const inputField = document.getElementById("device-input");
+            const deviceId = inputField.value.trim();
+
+            if (!deviceId) return;
+            
+            if (activeDevices[deviceId]) {
+                alert("This device dashboard is already active.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/device-data?id=${encodeURIComponent(deviceId)}`);
+                if (!response.ok) {
+                    alert("Device ID not found in database registry.");
+                    return;
+                }
+                
+                const liveData = await response.json();
+                
+                // Save instance settings locally
+                activeDevices[deviceId] = {
+                    useFahrenheit: false,
+                    latestCel: liveData.temperature,
+                    avgTodayCel: liveData.averages.today.temp,
+                    avgWeekCel: liveData.averages.week.temp,
+                    avgMonthCel: liveData.averages.month.temp
+                };
+
+                // Generate layout sections
+                renderDeviceMarkup(deviceId, liveData);
+                
+                // Draw initial gauge and status positions
+                updateDeviceUI(deviceId, liveData);
+
+                inputField.value = ""; 
+            } catch (err) {
+                console.error("Error creating device block:", err);
+            }
+        }
+
+        function removeDevice(deviceId) {
+            const element = document.getElementById(`section-${deviceId}`);
+            if (element) element.remove();
+            delete activeDevices[deviceId];
+        }
+
+        function toggleDeviceTemp(deviceId) {
+            const dev = activeDevices[deviceId];
+            dev.useFahrenheit = !dev.useFahrenheit;
+            
+            // Adjust current gauge label text values
+            const displayValue = dev.useFahrenheit ? cToF(dev.latestCel) : dev.latestCel;
+            document.getElementById(`temp-val-${deviceId}`).innerText = displayValue;
+            document.getElementById(`temp-unit-${deviceId}`).innerText = dev.useFahrenheit ? "°F" : "°C";
+
+            // Adjust historical calculation data rows matching configuration settings
+            document.getElementById(`avg-today-${deviceId}`).innerText = `🌡 Temp: ${dev.useFahrenheit ? cToF(dev.avgTodayCel) + ' °F' : dev.avgTodayCel + ' °C'}`;
+            document.getElementById(`avg-week-${deviceId}`).innerText = `🌡 Temp: ${dev.useFahrenheit ? cToF(dev.avgWeekCel) + ' °F' : dev.avgWeekCel + ' °C'}`;
+            document.getElementById(`avg-month-${deviceId}`).innerText = `🌡 Temp: ${dev.useFahrenheit ? cToF(dev.avgMonthCel) + ' °F' : dev.avgMonthCel + ' °C'}`;
+        }
+
+        function renderDeviceMarkup(id, data) {
+            const container = document.getElementById("devices-container");
+            
+            const htmlBlock = `
+                <div class="device-section" id="section-${id}">
+                    <div class="device-header">
+                        <span>📱 Device: <strong>${data.device_id}</strong></span>
+                        <button class="remove-btn" onclick="removeDevice('${id}')">Remove Device</button>
+                    </div>
+
+                    <div class="dashboard">
+                        <div class="card">
+                            <h2>🌡 Temperature</h2>
+                            <div class="gauge-container">
+                                <div class="gauge" id="temp-gauge-${id}"></div>
+                                <div class="needle" id="temp-needle-${id}"></div>
+                                <div class="center-circle"></div>
+                            </div>
+                            <div class="value" id="temp-val-${id}">${data.temperature}</div>
+                            <div class="unit" id="temp-unit-${id}">°C</div>
+                            <div class="status" id="temp-status-${id}"></div>
+                            <button class="temp-toggle" onclick="toggleDeviceTemp('${id}')">Switch °C / °F</button>
+                        </div>
+
+                        <div class="card">
+                            <h2>☁ Air Quality</h2>
+                            <div class="gauge-container">
+                                <div class="gauge" id="air-gauge-${id}"></div>
+                                <div class="needle" id="air-needle-${id}"></div>
+                                <div class="center-circle"></div>
+                            </div>
+                            <div class="value" id="air-val-${id}">${data.air}</div>
+                            <div class="unit">ppm</div>
+                            <div class="status" id="air-status-${id}"></div>
+                        </div>
+
+                        <div class="card">
+                            <h2>💧 Humidity</h2>
+                            <div class="gauge-container">
+                                <div class="gauge" id="humidity-gauge-${id}"></div>
+                                <div class="needle" id="humidity-needle-${id}"></div>
+                                <div class="center-circle"></div>
+                            </div>
+                            <div class="value" id="humidity-val-${id}">${data.humidity}</div>
+                            <div class="unit">%</div>
+                            <div class="status" id="humidity-status-${id}"></div>
+                        </div>
+
+                        <div class="card">
+                            <h2>🔊 Noise</h2>
+                            <div class="gauge-container">
+                                <div class="gauge" id="noise-gauge-${id}"></div>
+                                <div class="needle" id="noise-needle-${id}"></div>
+                                <div class="center-circle"></div>
+                            </div>
+                            <div class="value">120</div>
+                            <div class="unit">dB</div>
+                            <div class="status" id="noise-status-${id}"></div>
+                        </div>
+
+                        <div class="card average-card">
+                            <h2>📊 Averages</h2>
+                            <div class="average-wrapper">
+                                <div class="average-box">
+                                    <h3>Today</h3>
+
+                                    <p id="avg-today-${id}">
+                                        🌡 Temp: ${data.averages.today.temp} °C
+                                    </p>
+
+                                    <p id="avg-today-humidity-${id}">
+                                        💧 Humidity: ${data.averages.today.humidity} %
+                                    </p>
+
+                                    <p id="avg-today-air-${id}">
+                                        ☁ Air: ${data.averages.today.air} ppm
+                                    </p>
+                                </div>
+
+                                <div class="average-box">
+                                    <h3>This Week</h3>
+
+                                    <p id="avg-week-${id}">
+                                        🌡 Temp: ${data.averages.week.temp} °C
+                                    </p>
+
+                                    <p id="avg-week-humidity-${id}">
+                                        💧 Humidity: ${data.averages.week.humidity} %
+                                    </p>
+
+                                    <p id="avg-week-air-${id}">
+                                        ☁ Air: ${data.averages.week.air} ppm
+                                    </p>
+                                </div>
+
+                                <div class="average-box">
+                                    <h3>This Month</h3>
+
+                                    <p id="avg-month-${id}">
+                                        🌡 Temp: ${data.averages.month.temp} °C
+                                    </p>
+
+                                    <p id="avg-month-humidity-${id}">
+                                        💧 Humidity: ${data.averages.month.humidity} %
+                                    </p>
+
+                                    <p id="avg-month-air-${id}">
+                                        ☁ Air: ${data.averages.month.air} ppm
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', htmlBlock);
+        }
+
+        function updateDeviceUI(id, data) {
+            // 1. Render Temperature Engine
+            const t = data.temperature;
+            let tRot = t < 18 ? -90 + ((t / 18) * 45) : t < 20 ? -35 + (((t - 18) / 2) * 30) : t <= 22 ? -5 + (((t - 20) / 2) * 32) : t <= 25 ? 25 + (((t - 22) / 3) * 38) : t < 34 ? 70 + (((t - 25) / 15) * 40) : 94;
+            document.getElementById(`temp-needle-${id}`).style.transform = `translateX(-50%) rotate(${tRot}deg)`;
+            document.getElementById(`temp-gauge-${id}`).style.background = `conic-gradient(from 270deg, #ff5e57 0deg 50deg, #ffd000 50deg 80deg, #32d74b 80deg 120deg, #ffd000 120deg 150deg, #ff5e57 150deg 180deg, transparent 180deg)`;
+            
+            const tStat = document.getElementById(`temp-status-${id}`);
+            if(t > 25) { tStat.innerText = "VERY HOT"; tStat.className = "status red"; }
+            else if(t > 22) { tStat.innerText = "LITTLE HOT"; tStat.className = "status yellow"; }
+            else if(t >= 20) { tStat.innerText = "GOOD"; tStat.className = "status green"; }
+            else if(t >= 18) { tStat.innerText = "LITTLE COLD"; tStat.className = "status yellow"; }
+            else { tStat.innerText = "VERY COLD"; tStat.className = "status red"; }
+
+            // 2. Render Air Quality Engine
+            const a = data.air;
+            let aRot = a < 2000 ? -90 + (a / 2000) * 180 : 94;
+            document.getElementById(`air-needle-${id}`).style.transform = `translateX(-50%) rotate(${aRot}deg)`;
+            document.getElementById(`air-gauge-${id}`).style.background = `conic-gradient(from 270deg, #32d74b 0deg 90deg, #ff5e57 90deg 180deg, transparent 180deg)`;
+            const aStat = document.getElementById(`air-status-${id}`);
+            if (a < 1000) { aStat.innerText = "GOOD"; aStat.className = "status green"; }
+            else { aStat.innerText = "BAD"; aStat.className = "status red"; }
+
+            // 3. Render Humidity Engine
+            const h = data.humidity;
+            let hRot = h < 40 ? -90 + ((h / 40) * 55) : h <= 65 ? -30 + (((h - 40) / 20) * 50) : h < 100 ? 30 + (((h - 65) / 40) * 70) : 92;
+            document.getElementById(`humidity-needle-${id}`).style.transform = `translateX(-50%) rotate(${hRot}deg)`;
+            document.getElementById(`humidity-gauge-${id}`).style.background = `conic-gradient(from 270deg, #ff5e57 0deg 60deg, #32d74b 60deg 120deg, #ff5e57 120deg 180deg, transparent 180deg)`;
+            const hStat = document.getElementById(`humidity-status-${id}`);
+            if (h >= 40 && h <= 65) { hStat.innerText = "GOOD"; hStat.className = "status green"; }
+            else { hStat.innerText = h < 40 ? "TOO LOW" : "TOO HIGH"; hStat.className = "status red"; }
+
+            // 4. Noise Baseline Graphic
+            document.getElementById(`noise-needle-${id}`).style.transform = `translateX(-50%) rotate(93deg)`;
+            document.getElementById(`noise-gauge-${id}`).style.background = `conic-gradient(from 270deg, #32d74b 0deg 40deg, #ffd000 40deg 60deg, #ff9500 60deg 150deg, #ff5e57 150deg 180deg, transparent 180deg)`;
+            document.getElementById(`noise-status-${id}`).innerText = "HARMFUL";
+            document.getElementById(`noise-status-${id}`).className = "status red";
+        }
+
+
+       // =========================================
+        // GLOBAL LIVE POLLER
+        // Synchronizes all active devices
+        // every 5 seconds.
+        // =========================================
+
+        async function runGlobalPoller() {
+
+            // Loop through all active devices
+            for (const id in activeDevices) {
+
+                try {
+
+                    // Request latest device data from Flask API
+                    const response =
+                        await fetch(`/api/device-data?id=${encodeURIComponent(id)}`);
+
+                    if (!response.ok) continue;
+
+                    // Convert JSON response
+                    const live = await response.json();
+
+                    // Shortcut reference
+                    const dev = activeDevices[id];
+
+                    // =========================================
+                    // UPDATE LOCAL DEVICE STORAGE
+                    // =========================================
+
+                    dev.latestCel = live.temperature;
+
+                    dev.avgTodayCel = live.averages.today.temp;
+                    dev.avgWeekCel = live.averages.week.temp;
+                    dev.avgMonthCel = live.averages.month.temp;
+
+
+                    // =========================================
+                    // UPDATE GAUGES + NEEDLES
+                    // =========================================
+
+                    updateDeviceUI(id, live);
+
+
+                    // =========================================
+                    // UPDATE LIVE VALUES
+                    // =========================================
+
+                    document.getElementById(`temp-val-${id}`).innerText =
+                        dev.useFahrenheit
+                            ? cToF(dev.latestCel)
+                            : dev.latestCel;
+
+                    document.getElementById(`air-val-${id}`).innerText =
+                        live.air;
+
+                    document.getElementById(`humidity-val-${id}`).innerText =
+                        live.humidity;
+
+
+                    // =========================================
+                    // TEMPERATURE UNIT
+                    // =========================================
+
+                    const unit = dev.useFahrenheit ? "°F" : "°C";
+
+
+                    // =========================================
+                    // UPDATE AVERAGES
+                    // =========================================
+
+                    updateAverage(
+                        `avg-today-${id}`,
+                        "🌡 Temp",
+                        dev.useFahrenheit
+                            ? cToF(dev.avgTodayCel)
+                            : dev.avgTodayCel,
+                        unit
+                    );
+
+                    updateAverage(
+                        `avg-week-${id}`,
+                        "🌡 Temp",
+                        dev.useFahrenheit
+                            ? cToF(dev.avgWeekCel)
+                            : dev.avgWeekCel,
+                        unit
+                    );
+
+                    updateAverage(
+                        `avg-month-${id}`,
+                        "🌡 Temp",
+                        dev.useFahrenheit
+                            ? cToF(dev.avgMonthCel)
+                            : dev.avgMonthCel,
+                        unit
+                    );
+
+
+                    // HUMIDITY
+
+                    updateAverage(
+                        `avg-today-humidity-${id}`,
+                        "💧 Humidity",
+                        live.averages.today.humidity,
+                        "%"
+                    );
+
+                    updateAverage(
+                        `avg-week-humidity-${id}`,
+                        "💧 Humidity",
+                        live.averages.week.humidity,
+                        "%"
+                    );
+
+                    updateAverage(
+                        `avg-month-humidity-${id}`,
+                        "💧 Humidity",
+                        live.averages.month.humidity,
+                        "%"
+                    );
+
+
+                    // AIR QUALITY
+
+                    updateAverage(
+                        `avg-today-air-${id}`,
+                        "☁ Air",
+                        live.averages.today.air,
+                        "ppm"
+                    );
+
+                    updateAverage(
+                        `avg-week-air-${id}`,
+                        "☁ Air",
+                        live.averages.week.air,
+                        "ppm"
+                    );
+
+                    updateAverage(
+                        `avg-month-air-${id}`,
+                        "☁ Air",
+                        live.averages.month.air,
+                        "ppm"
+                    );
+
+                }
+
+                catch (err) {
+
+                    console.error("Poller update execution exception:", err);
+                }
+            }
+        }
+
+
+        // =========================================
+        // HELPER FUNCTION
+        // Updates average text fields
+        // =========================================
+
+        function updateAverage(elementId, label, value, unit) {
+
+            document.getElementById(elementId).innerText =
+                `${label}: ${value} ${unit}`;
+        }
+
+
+        // =========================================
+        // LIVE REFRESH TIMER
+        // =========================================
+
+        setInterval(runGlobalPoller, 5000);
+    </script>
+</body>
+</html>
