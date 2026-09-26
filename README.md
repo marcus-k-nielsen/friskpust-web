@@ -40,7 +40,7 @@ The project demonstrates how data can be retrieved from a database and made avai
 ## Project Structure
 
 ```text
-DB-To-Flask-App/
+friskpust-web/
 │
 ├── templates/
 │   └── ...
@@ -85,8 +85,8 @@ This provides a basic example of connecting a backend application to a database 
 Clone the repository:
 
 ```bash
-git clone https://github.com/TezzePP/DB-To-Flask-App.git
-cd DB-To-Flask-App
+git clone https://github.com/marcus-k-nielsen/friskpust-web
+cd friskpust-web
 ```
 
 Install the required Python packages:
