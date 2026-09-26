@@ -85,7 +85,7 @@ This provides a basic example of connecting a backend application to a database 
 Clone the repository:
 
 ```bash
-git clone https://github.com/marcus-k-nielsen/friskpust-web
+git clone https://github.com/marcus-k-nielsen/friskpust-web.git
 cd friskpust-web
 ```
 
