@@ -1,4 +1,3 @@
-@@ -1,2 +1,123 @@
 # Frisk-Pust-Hjemmeside
 Dette er hjemmesiden til vores frisk pust enhed
 # Database to Flask Web Application
